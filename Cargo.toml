@@ -1,0 +1,20 @@
+
+[workspace]
+members = [
+    "srp_01",
+    "srp_02",
+    "srp_03",
+    "ocp_01",
+    "ocp_02",
+    "ocp_03",
+    "ocp_04",
+    "ocp_05",
+    "ocp_06",
+    "ocp_07",
+]
+resolver = "3" # Read https://doc.rust-lang.org/cargo/reference/resolver.html#resolver-versions
+
+# Optional: default build profiles for all members
+[profile.release]
+# lto = true
+# codegen-units = 1
