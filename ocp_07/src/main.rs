@@ -1,108 +1,121 @@
 // cargo run -p ex_07_ocp
 
 // =========================
-// Static dispatch example
+// Static Dispatch Based Solution - Txt Processor with Plugins
 // =========================
 
-// Shared editor state
-pub struct EditorContext {
-    pub content: String,
+// =========================
+// Abstractions
+// =========================
+
+// A TxtProcessor is a toolchain of processing to be applied on text
+// It knows nothing about the processing nor the text
+pub struct TxTProcessor<T> {
+    processings: T,
 }
 
-// Compile-time behavior abstraction
-pub trait Tool {
-    fn name(&self) -> &str;
-    fn apply(&mut self, context: &mut EditorContext);
-}
+impl<T: ToolChain> TxTProcessor<T> {
+    pub fn new(tools: T) -> Self {
+        Self { processings: tools }
+    }
 
-// Apply a tool or a chain of tools
-pub trait ToolChain {
-    fn apply(&mut self, context: &mut EditorContext);
-}
-
-// Implementation for a unique tool
-// A single Tool is also a valid ToolChain
-// If we don't have this implementation there is no way to implement the recusrsive
-impl<T: Tool> ToolChain for T {
-    fn apply(&mut self, context: &mut EditorContext) {
-        // self.apply(context); // CANNOT work: .apply() calls .apply()
-        Tool::apply(self, context);
+    pub fn run(&mut self, context: &mut EditorContent) {
+        self.processings.apply(context);
     }
 }
 
-// Recusrsive implementation for a tuple
+// Apply a processing or a chain of processings
+pub trait ToolChain {
+    fn apply(&mut self, context: &mut EditorContent);
+}
+
+// Implementation for a unique processing
+// A single Processing is also a valid ToolChain
+// If we don't have this implementation there is no way to implement the recursive
+impl<T: Processing> ToolChain for T {
+    fn apply(&mut self, context: &mut EditorContent) {
+        // self.apply(context); // ! CANNOT work: .apply() calls .apply()
+        Processing::apply(self, context);
+    }
+}
+
+// Recursive implementation for a tuple
 // A tuple (Head, Tail) is a ToolChain if:
-//      Head is a Tool
+//      Head is a Processing
 //      Tail is already a ToolChain
 impl<Head, Tail> ToolChain for (Head, Tail)
 where
-    Head: Tool,
+    Head: Processing,
     Tail: ToolChain,
 {
-    fn apply(&mut self, context: &mut EditorContext) {
+    fn apply(&mut self, context: &mut EditorContent) {
         self.0.apply(context);
         self.1.apply(context);
     }
 }
 
-// Editor using static dispatch
-pub struct Editor<T> {
-    tools: T,
+// Here the content of the TxtProcessor is just a String
+pub struct EditorContent {
+    pub content: String,
 }
 
-impl<T: ToolChain> Editor<T> {
-    pub fn new(tools: T) -> Self {
-        Self { tools }
-    }
-
-    pub fn run(&mut self, context: &mut EditorContext) {
-        self.tools.apply(context);
-    }
+// If a type wants to have the Processing trait it must implement the 2 methods below
+pub trait Processing {
+    fn name(&self) -> &str;
+    fn apply(&mut self, context: &mut EditorContent);
 }
 
-// Spell check tool
-pub struct SpellCheck;
+// =========================
+// Concrete processing
+// =========================
 
-impl Tool for SpellCheck {
+// Lowercase processing
+pub struct LowerCase;
+
+impl Processing for LowerCase {
     fn name(&self) -> &str {
-        "Spell Checker"
+        "LowerCase"
     }
 
-    fn apply(&mut self, context: &mut EditorContext) {
-        // Normalize text to simulate spell checking
+    fn apply(&mut self, context: &mut EditorContent) {
         context.content = context.content.to_lowercase();
-        context.content.push_str("\n[Spell check OK]");
+        context.content.push_str("\n[LowerCase OK]");
     }
 }
 
-// Git integration tool
-pub struct Git;
+// SpellChecker processing
+pub struct SpellChecker;
 
-impl Tool for Git {
+impl Processing for SpellChecker {
     fn name(&self) -> &str {
         "Git Integration"
     }
 
-    fn apply(&mut self, context: &mut EditorContext) {
-        context.content.push_str("\n[Git status clean]");
+    fn apply(&mut self, context: &mut EditorContent) {
+        // Fake spell checker
+        context.content.push_str("\n[SpellChecker OK]");
     }
 }
 
+// =========================
+// Usage
+// =========================
+
 fn main() {
-    let mut editor = Editor::new((SpellCheck, Git));
+    let mut processor = TxTProcessor::new((LowerCase, SpellChecker));
 
     // At this point the chain is complete:
-    // Git implements Tool
-    // therefore Git implements ToolChain
-    // therefore (SpellCheck, Git) implements ToolChain
-    // therefore Editor<(SpellCheck, Git)> is valid
+    // LowerCase implements Tool
+    // therefore LowerCase implements ToolChain
+    // therefore (SpellCheck, LowerCase) implements ToolChain
+    // therefore Editor<(SpellCheck, LowerCase)> is valid
 
-    let mut context = EditorContext {
+    let mut ed_context = EditorContent {
         content: String::from("HELLO WORLD"),
     };
 
-    editor.run(&mut context);
+    processor.run(&mut ed_context);
 
     println!("--- FINAL CONTENT ---");
-    println!("{}", context.content);
+    println!("{}", ed_context.content);
 }

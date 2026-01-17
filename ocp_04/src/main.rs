@@ -1,20 +1,25 @@
 // cargo run -p ex_04_ocp
 
 // =========================
-// Static dispatch example
+// Naïve Solution - Txt Processor with Plugins
 // =========================
 
 // =========================
 // Abstractions
 // =========================
 
-// Editor with static dispatch
-pub struct Editor;
+// A TxtProcessor knows nothing about the processing nor the text
+pub struct TxtProcessor;
 
-impl Editor {
-    pub fn run<T1: Tool, T2: Tool>(&self, tool1: &T1, tool2: &T2, context: &mut EditorContent) {
-        tool1.apply(context);
-        tool2.apply(context);
+impl TxtProcessor {
+    pub fn run<P1: Processing, P2: Processing>(
+        &self,
+        processing1: &P1,
+        processing2: &P2,
+        content: &mut EditorContent,
+    ) {
+        processing1.apply(content);
+        processing2.apply(content);
     }
 }
 
@@ -23,30 +28,31 @@ pub struct EditorContent {
     pub content: String,
 }
 
-// If a type wants to have the Tool trait it must implement the apply method
-pub trait Tool {
+// If a type wants to have the Processing trait it must implement the .apply() method
+pub trait Processing {
     fn apply(&self, context: &mut EditorContent);
 }
 
 // =========================
-// Concrete tools
+// Concrete processing
 // =========================
 
-// Spell checker
-pub struct SpellCheck;
+// Lowercase processing
+pub struct LowerCase;
 
-impl Tool for SpellCheck {
+impl Processing for LowerCase {
     fn apply(&self, context: &mut EditorContent) {
-        context.content.push_str("\n[Spell check OK]");
+        context.content = context.content.to_lowercase();
+        context.content.push_str("\n[LowerCase OK]");
     }
 }
 
-// Git integration
-pub struct Git;
+// SpellChecker processing
+pub struct SpellChecker;
 
-impl Tool for Git {
+impl Processing for SpellChecker {
     fn apply(&self, context: &mut EditorContent) {
-        context.content.push_str("\n[Git status clean]");
+        context.content.push_str("\n[SpellChecker OK]");
     }
 }
 
@@ -55,15 +61,16 @@ impl Tool for Git {
 // =========================
 
 fn main() {
-    let editor = Editor;
-    let spellcheck = SpellCheck;
-    let git = Git;
+    let processor = TxtProcessor;
+
+    let lowercase = LowerCase;
+    let spell_checker = SpellChecker;
 
     let mut context = EditorContent {
-        content: String::from("Hello world"),
+        content: String::from("HELLO WORLD"),
     };
 
-    editor.run(&spellcheck, &git, &mut context);
+    processor.run(&lowercase, &spell_checker, &mut context);
 
     println!("--- FINAL CONTENT ---");
     println!("{}", context.content);

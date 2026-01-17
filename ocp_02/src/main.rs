@@ -1,6 +1,10 @@
 // cargo run -p ex_02_ocp
 
 // =========================
+// Dynamic Traits Based Solution - Reporter
+// =========================
+
+// =========================
 // Abstractions
 // =========================
 
@@ -10,15 +14,15 @@ pub struct Report {
     data: Vec<String>,
 }
 
-// However, the report has a generate() method which calls the .format() method of the formatter
-// The call will be resolve at runtime (via a vtable)
+// However, the report has a .generate() method which calls the .format() method of the formatter
+// The call will be resolved at runtime (via a vtable)
 impl Report {
     pub fn generate(&self, formatter: &dyn ReportFormatter) -> String {
         formatter.format(&self.title, &self.data)
     }
 }
 
-// If a type wants to have the ReportFormatter trait it must implement the format method
+// If a type wants to have the ReportFormatter trait it must implement the .format() method
 pub trait ReportFormatter {
     fn format(&self, title: &str, data: &[String]) -> String;
 }

@@ -1,16 +1,21 @@
 # solid_test
 
+> **Warning (Linux/macOS users):** The `.cargo/` folder contains configuration specific to Windows 11 with OneDrive (custom `target-dir` and CPU flags). Delete or rename this folder before building on Linux/macOS:
+> ```bash
+> rm -rf .cargo   # or: mv .cargo .cargo.bak
+> ```
 
 
 ## Description
 
-This project hosts most of the code explained in the blog post "[SOLID Principles in Rust: A Practical Guide](https://www.40tude.fr/docs/06_programmation/rust/022_solid/solid_00.html)". While the blog post explains the theory with code snippets, the workspaces of this project make sure you have something running in you hands. Feel free to modify and break the code.
+This project hosts most of the code explained in the blog post "[SOLID Principles in Rust: A Practical Guide](https://www.40tude.fr/docs/06_programmation/rust/022_solid/solid_00.html)". While the blog post explains the theory with code snippets, the workspaces of this project make sure you have something running in you hands. Feel free to modify and break the code before to make it work again.
 
-At the top of the main.rs you will find the command to use tu run the project of the workspace. Example:
+At the top of the `main.rs` you will find the command to use tu run the project of the workspace. Example:
 
 ```rust
 // cargo run -p ex_01_ocp
 ```
+
 Open a terminal at the root of the folder where you downloaded the repo and paste the command. Do not run the command in the folder of the workspace (e.g. `ocp_01/`)
 
 

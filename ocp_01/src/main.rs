@@ -1,5 +1,9 @@
 // cargo run -p ex_01_ocp
 
+// =========================
+// Naïve Solution - Reporter
+// =========================
+
 // This enum defines all supported report formats
 // Adding a new format requires modifying this enum
 pub enum ReportFormat {

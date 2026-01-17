@@ -21,6 +21,7 @@ impl EmployeeRepository {
         )
     }
 
+    #[allow(dead_code)]
     pub fn find_by_id(&self, _id: u32) -> Result<Employee, DbError> {
         // Fake implementation for demo purposes
         Ok(Employee {

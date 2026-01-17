@@ -2,83 +2,98 @@
 // ! DOES NOT COMPILE
 
 // =========================
-// Static dispatch example
+// Static Dispatch Based Solution - Txt Processor with Plugins
 // =========================
 
-// Shared editor state
-pub struct EditorContext {
-    pub content: String,
+// =========================
+// Abstractions
+// =========================
+
+// Generic definition. A TxtProcessor is a vector of processing to be applied on text
+// It knows nothing about the processing nor the text
+pub struct TxtProcessor<T: Processing> {
+    processings: Vec<T>,
 }
 
-// Compile-time behavior abstraction
-pub trait Tool {
-    fn name(&self) -> &str;
-    fn apply(&mut self, context: &mut EditorContext);
-}
-
-// Editor using static dispatch
-pub struct Editor<T: Tool> {
-    tools: Vec<T>,
-}
-
-impl<T: Tool> Editor<T> {
+impl<T: Processing> TxtProcessor<T> {
     pub fn new() -> Self {
-        Self { tools: Vec::new() }
+        Self {
+            processings: Vec::new(),
+        }
     }
 
-    pub fn register_tool(&mut self, tool: T) {
-        self.tools.push(tool);
+    pub fn register_processing(&mut self, tool: T) {
+        self.processings.push(tool);
     }
 
-    pub fn run(&mut self, context: &mut EditorContext) {
-        for tool in &mut self.tools {
+    pub fn run(&mut self, context: &mut EditorContent) {
+        for tool in &mut self.processings {
             println!("Running tool: {}", tool.name());
             tool.apply(context); // Direct call, no vtable
         }
     }
 }
 
-// Spell check tool
-pub struct SpellCheck;
+// Here the content of the TxtProcessor is just a String
+pub struct EditorContent {
+    pub content: String,
+}
 
-impl Tool for SpellCheck {
+// If a type wants to have the Processing trait it must implement the 2 methods below
+pub trait Processing {
+    fn name(&self) -> &str;
+    fn apply(&mut self, context: &mut EditorContent);
+}
+
+// =========================
+// Concrete processing
+// =========================
+
+// Lowercase processing
+pub struct LowerCase;
+
+impl Processing for LowerCase {
     fn name(&self) -> &str {
-        "Spell Checker"
+        "LowerCase"
     }
 
-    fn apply(&mut self, context: &mut EditorContext) {
-        // Normalize text to simulate spell checking
+    fn apply(&mut self, context: &mut EditorContent) {
         context.content = context.content.to_lowercase();
-        context.content.push_str("\n[Spell check OK]");
+        context.content.push_str("\n[LowerCase OK]");
     }
 }
 
-// Git integration tool
-pub struct Git;
+// SpellChecker processing
+pub struct SpellChecker;
 
-impl Tool for Git {
+impl Processing for SpellChecker {
     fn name(&self) -> &str {
-        "Git Integration"
+        "SpellChecker"
     }
 
-    fn apply(&mut self, context: &mut EditorContext) {
-        context.content.push_str("\n[Git status clean]");
+    fn apply(&mut self, context: &mut EditorContent) {
+        // Fake spell checker
+        context.content.push_str("\n[SpellChecker OK]");
     }
 }
+
+// =========================
+// Usage
+// =========================
 
 fn main() {
-    let mut editor = Editor::new();
+    let mut processor = TxtProcessor::new();
 
     // Tools must be of the same concrete type T
-    editor.register_tool(SpellCheck);
-    editor.register_tool(Git);
+    processor.register_processing(LowerCase);
+    processor.register_processing(SpellChecker);
 
-    let mut context = EditorContext {
+    let mut ed_context = EditorContent {
         content: String::from("HELLO WORLD"),
     };
 
-    editor.run(&mut context);
+    processor.run(&mut ed_context);
 
     println!("--- FINAL CONTENT ---");
-    println!("{}", context.content);
+    println!("{}", ed_context.content);
 }

@@ -1,7 +1,7 @@
 // cargo run -p ex_05_ocp
 
 // =========================
-// Dynamic dispatch example
+// Dynamic Dispatch Based Solution - Txt Processor with Plugins
 // =========================
 
 // =========================
@@ -21,7 +21,7 @@ impl TxtProcessor {
         }
     }
 
-    pub fn register_tool(&mut self, processing: Box<dyn Processing>) {
+    pub fn register_processing(&mut self, processing: Box<dyn Processing>) {
         self.processings.push(processing);
     }
 
@@ -45,7 +45,7 @@ pub trait Processing {
 }
 
 // =========================
-// Concrete tools
+// Concrete processing
 // =========================
 
 // Lowercase processing
@@ -81,16 +81,16 @@ impl Processing for SpellChecker {
 // =========================
 
 fn main() {
-    let mut editor = TxtProcessor::new();
+    let mut processor = TxtProcessor::new();
 
-    editor.register_tool(Box::new(LowerCase));
-    editor.register_tool(Box::new(SpellChecker));
+    processor.register_processing(Box::new(LowerCase));
+    processor.register_processing(Box::new(SpellChecker));
 
     let mut ed_context = EditorContent {
         content: String::from("HELLO WORLD"),
     };
 
-    editor.run(&mut ed_context);
+    processor.run(&mut ed_context);
 
     println!("--- FINAL CONTENT ---");
     println!("{}", ed_context.content);

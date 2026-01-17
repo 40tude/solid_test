@@ -1,6 +1,10 @@
 // cargo run -p ex_03_ocp
 
 // =========================
+// Generic Static Dispatch Based Solution - Reporter
+// =========================
+
+// =========================
 // Abstractions
 // =========================
 
@@ -10,7 +14,7 @@ pub struct Report {
     data: Vec<String>,
 }
 
-// However, the report has a generate method which calls the .format() method of the formatter
+// However, the report has a .generate() method which calls the .format() method of the formatter
 // The call will be resolve at compile time
 impl Report {
     // Generic version using static dispatch
@@ -19,7 +23,7 @@ impl Report {
     }
 }
 
-// If a type wants to have the ReportFormatter trait it must implement the format method
+// If a type wants to have the ReportFormatter trait it must implement the .format() method
 pub trait ReportFormatter {
     fn format(&self, title: &str, data: &[String]) -> String;
 }
@@ -28,7 +32,7 @@ pub trait ReportFormatter {
 // Concrete formatters
 // =========================
 
-// Plain text output
+// Plain text output (same behavior as before)
 pub struct TextFormatter;
 
 impl ReportFormatter for TextFormatter {
@@ -41,7 +45,7 @@ impl ReportFormatter for TextFormatter {
     }
 }
 
-// HTML output
+// HTML output (same structure as initial example)
 pub struct HtmlFormatter;
 
 impl ReportFormatter for HtmlFormatter {
@@ -55,7 +59,7 @@ impl ReportFormatter for HtmlFormatter {
     }
 }
 
-// Fake PDF output
+// Fake PDF output (same spirit as before)
 pub struct PdfFormatter;
 
 impl ReportFormatter for PdfFormatter {
@@ -64,7 +68,7 @@ impl ReportFormatter for PdfFormatter {
     }
 }
 
-// XML output
+// New XML output - extension without modification
 pub struct XmlFormatter;
 
 impl ReportFormatter for XmlFormatter {
