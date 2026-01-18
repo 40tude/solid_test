@@ -3,6 +3,10 @@
 version = 4
 
 [[package]]
+name = "ex_01_isp"
+version = "0.1.0"
+
+[[package]]
 name = "ex_01_lsp"
 version = "0.1.0"
 
@@ -12,6 +16,10 @@ version = "0.1.0"
 
 [[package]]
 name = "ex_01_srp"
+version = "0.1.0"
+
+[[package]]
+name = "ex_02_isp"
 version = "0.1.0"
 
 [[package]]
@@ -27,6 +35,10 @@ name = "ex_02_srp"
 version = "0.1.0"
 
 [[package]]
+name = "ex_03_isp"
+version = "0.1.0"
+
+[[package]]
 name = "ex_03_ocp"
 version = "0.1.0"
 
@@ -35,7 +47,15 @@ name = "ex_03_srp"
 version = "0.1.0"
 
 [[package]]
+name = "ex_04_isp"
+version = "0.1.0"
+
+[[package]]
 name = "ex_04_ocp"
+version = "0.1.0"
+
+[[package]]
+name = "ex_05_isp"
 version = "0.1.0"
 
 [[package]]
