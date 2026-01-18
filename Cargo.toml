@@ -11,6 +11,10 @@ members = [
     "ocp_05",
     "ocp_06",
     "ocp_07",
+    "lsp_01",
+    "lsp_02",
+    "lsp_03",
+    "lsp_04",
 ]
 resolver = "3" # Read https://doc.rust-lang.org/cargo/reference/resolver.html#resolver-versions
 

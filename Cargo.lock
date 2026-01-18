@@ -3,11 +3,19 @@
 version = 4
 
 [[package]]
+name = "ex_01_lsp"
+version = "0.1.0"
+
+[[package]]
 name = "ex_01_ocp"
 version = "0.1.0"
 
 [[package]]
 name = "ex_01_srp"
+version = "0.1.0"
+
+[[package]]
+name = "ex_02_lsp"
 version = "0.1.0"
 
 [[package]]
@@ -40,4 +48,12 @@ version = "0.1.0"
 
 [[package]]
 name = "ex_07_ocp"
+version = "0.1.0"
+
+[[package]]
+name = "ex_lsp_03"
+version = "0.1.0"
+
+[[package]]
+name = "ex_lsp_04"
 version = "0.1.0"
