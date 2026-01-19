@@ -20,6 +20,11 @@ members = [
     "isp_03",
     "isp_04",
     "isp_05",
+    "dip_01",
+    "dip_02",
+    "dip_03",
+    "dip_04",
+    "dip_05",
 ]
 resolver = "3" # Read https://doc.rust-lang.org/cargo/reference/resolver.html#resolver-versions
 
