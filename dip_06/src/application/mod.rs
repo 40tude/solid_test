@@ -28,8 +28,8 @@ use crate::domain::{LineItem, Order, OrderError, OrderId};
 use crate::ports::{OrderRepository, PaymentGateway, Sender};
 
 // Two sources:
-// 1. crate::domain - the business entities and errors
-// 2. crate::ports  - the traits (abstractions) we depend on
+// 1. crate::domain: the business entities and errors
+// 2. crate::ports: the traits (abstractions) we depend on
 //
 // CRITICALLY: no `use crate::adapters::...` here!
 //
@@ -123,9 +123,9 @@ where
         // Steps 3-5: Orchestrate the external operations
         // Each of these calls goes through a port (trait) to an adapter.
         // We don't know if we're calling Stripe or a mock. We don't care!
-        self.payment.charge(order.total)?;  // Charge first!
-        self.repository.save(&order)?;       // Then persist
-        self.sender.send(&order)?;           // Finally notify
+        self.payment.charge(order.total)?; // Charge first!
+        self.repository.save(&order)?; // Then persist
+        self.sender.send(&order)?; // Finally notify
 
         Ok(order)
     }
@@ -151,8 +151,8 @@ where
 // - It manages application state (next_id)
 //
 // None of that is business LOGIC. It's application WORKFLOW.
-// The business rules live in Order::new() - "an order must have items".
-// The workflow lives here - "charge, then save, then notify".
+// The business rules live in Order::new(): "an order must have items".
+// The workflow lives here: "charge, then save, then notify".
 //
 // Keeping them separate means:
 // - Domain stays pure and testable without any mocks

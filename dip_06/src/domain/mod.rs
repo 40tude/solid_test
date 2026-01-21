@@ -3,8 +3,8 @@
 // =============================================================================
 //
 // Welcome to the domain layer! This is the most important module in the entire
-// application. Why? Because it contains the BUSINESS LOGIC - the rules that
-// make your application unique and valuable.
+// application. Why? Because it contains the BUSINESS LOGIC (the rules that
+// make your application unique and valuable).
 //
 // In dip_05, this code lived in a `mod domain { ... }` block inside main.rs.
 // Now it has its own file. Same code, but with an important difference:
@@ -110,7 +110,7 @@ impl fmt::Display for OrderError {
 // Business Logic
 // =============================================================================
 // Here's where the magic happens. These are the RULES of your business.
-// "An order must have at least one item" - that's a business rule.
+// "An order must have at least one item": that's a business rule.
 // It belongs here, not in a database constraint, not in a UI validation.
 //
 // Why? Because business rules should be in ONE place. If this rule changes

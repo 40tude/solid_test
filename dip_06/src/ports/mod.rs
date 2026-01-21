@@ -32,7 +32,7 @@ use crate::domain::{Money, Order, OrderError, OrderId};
 
 // We import FROM domain. That's the correct dependency direction!
 // Ports know about domain types because they need to speak the domain's
-// language. But domain doesn't know about ports - check domain/mod.rs,
+// language. But domain doesn't know about ports: check domain/mod.rs,
 // you won't find any `use crate::ports::...` there.
 //
 // This is Dependency Inversion in action:
@@ -100,7 +100,7 @@ pub trait Sender {
 // (like HTTP handlers or CLI commands).
 //
 // In our example, we don't have explicit input ports because:
-// 1. main() directly calls OrderService - it's simple enough
+// 1. main() directly calls OrderService: it's simple enough
 // 2. We're focusing on the DIP story, not full hexagonal architecture
 //
 // In a real application, you might define:

@@ -87,12 +87,12 @@ use domain::{LineItem, Money};
 // =============================================================================
 // This is the payoff: the actual usage code is IDENTICAL to dip_05.
 // We reorganized the entire codebase, and main() didn't notice.
-// That's a sign of good architecture - internal changes don't ripple outward.
+// That's a sign of good architecture (internal changes don't ripple outward).
 
 fn main() {
     println!("=== Hexagonal Architecture Demo (Modular) ===\n");
 
-    // Test data - same as dip_05
+    // Test data: same as ex_05_dip
     let items = vec![
         LineItem {
             name: "Rust Programming Book".to_string(),
@@ -163,11 +163,11 @@ fn main() {
 //
 // Now dive into each module to see how they're organized:
 //
-// 1. domain/mod.rs    - The heart: pure business logic, no dependencies
-// 2. ports/mod.rs     - The contracts: traits that define boundaries
-// 3. application/mod.rs - The orchestrator: coordinates domain + ports
-// 4. adapters/mod.rs  - The gateway to infrastructure implementations
-//    ├── in_memory.rs - Test/dev implementations
-//    └── external.rs  - Production implementations
+// 1. domain/mod.rs      : The heart: pure business logic, no dependencies
+// 2. ports/mod.rs       : The contracts: traits that define boundaries
+// 3. application/mod.rs : The orchestrator: coordinates domain + ports
+// 4. adapters/mod.rs    : The gateway to infrastructure implementations
+//    ├── in_memory.rs   : Test/dev implementations
+//    └── external.rs    : Production implementations
 //
 // Each file has its own comments explaining its role. Enjoy the tour!

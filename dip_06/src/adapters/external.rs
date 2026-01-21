@@ -16,7 +16,7 @@
 // - sendgrid-rs for SendGrid
 //
 // We're simulating them because:
-// 1. This is a teaching example - no need for real credentials
+// 1. This is a teaching example: no need for real credentials
 // 2. You can run `cargo run` without any setup
 // 3. The PATTERN is what matters, not the actual API calls
 //
@@ -110,7 +110,7 @@ impl OrderRepository for PostgresOrderRepository {
     /// ```
     ///
     /// Note how database errors get converted to OrderError::StorageFailed.
-    /// The application layer never sees sqlx::Error - only domain errors.
+    /// The application layer never sees sqlx::Error (only domain errors).
     fn save(&mut self, order: &Order) -> Result<(), OrderError> {
         // This is what a real implementation would LOG
         println!(
@@ -327,12 +327,12 @@ impl Sender for SendGridSender {
 //
 // Let's recap the journey from dip_01 to dip_06:
 //
-// dip_01: The problem - tight coupling, domain depends on infrastructure
-// dip_02: The solution - invert dependencies with a trait (Sender)
-// dip_03: Multiple adapters - Email, SMS, Owl (same trait, different impls)
-// dip_04: Testing - MockSender makes unit tests easy
-// dip_05: Hexagonal Architecture - multiple ports, layered structure
-// dip_06: Modular organization - file system enforces architecture
+// dip_01: The problem: tight coupling, domain depends on infrastructure
+// dip_02: The solution: invert dependencies with a trait (Sender)
+// dip_03: Multiple adapters: Email, SMS, Owl (same trait, different impls)
+// dip_04: Testing: MockSender makes unit tests easy
+// dip_05: Hexagonal Architecture: multiple ports, layered structure
+// dip_06: Modular organization: file system enforces architecture
 //
 // You now understand DIP at every level: concept, pattern, and structure.
 // Go build something amazing with it!

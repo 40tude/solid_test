@@ -57,7 +57,7 @@ use crate::ports::{OrderRepository, PaymentGateway, Sender};
 // And that's perfectly fine for testing!
 
 pub struct InMemoryOrderRepository {
-    // The "database" - just a HashMap in memory.
+    // The "database": just a HashMap in memory.
     // HashMap<OrderId, Order> means: "map order IDs to orders"
     orders: HashMap<OrderId, Order>,
 }
