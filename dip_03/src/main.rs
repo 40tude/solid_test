@@ -1,153 +1,78 @@
-// cargo test -p ex_03_dip
 // cargo run -p ex_03_dip
+// Add sms and owl services 🦉
 
-// =========================
-// Dependency Inversion Principle - Solution
-// =========================
+fn main() {
+    use domain::OrderService;
+    use email::Email;
+    // + 2 lines here
+    use owl::Owl;
+    use sms::Sms;
 
-// DOMAIN layer - defines business logic and the abstractions it needs
+    let email_service = OrderService::new(Email);
+    email_service.place_order(101);
+    println!();
+    let sms_service = OrderService::new(Sms);
+    sms_service.place_order(42);
+    println!();
+    let owl_service = OrderService::new(Owl);
+    owl_service.place_order(13);
+}
+
+// No change here
 mod domain {
-    // The business logic DEFINES what it needs
-    pub trait Notifier {
+    pub trait Sender {
         fn send(&self, message: &str);
     }
-
-    // Business logic (high-level) DEPENDS ON abstraction
-    pub struct OrderService<N: Notifier> {
-        notifier: N, // Depends on trait, not concrete class
+    pub struct OrderService<S: Sender> {
+        sender: S,
     }
 
-    impl<N: Notifier> OrderService<N> {
-        pub fn new(notifier: N) -> Self {
-            Self { notifier } // Injected dependency
+    impl<S: Sender> OrderService<S> {
+        pub fn new(sender: S) -> Self {
+            Self { sender }
         }
 
         pub fn place_order(&self, order_id: u32) {
             println!("Order #{} placed", order_id);
-            self.notifier
-                .send(&format!("Order #{} confirmed", order_id));
+
+            self.sender.send(&format!("Order #{} confirmed", order_id));
         }
     }
 }
 
-// INFRASTRUCTURE layer - adapts to domain requirements
-mod infrastructure {
-    use crate::domain::Notifier; // Infrastructure depends on domain
+// No change here
+mod email {
+    use crate::domain::Sender;
 
-    pub struct EmailNotifier;
-    pub struct SmsNotifier;
+    pub struct Email;
 
-    // Infrastructure IMPLEMENTS what the domain needs
-    impl Notifier for EmailNotifier {
+    impl Sender for Email {
         fn send(&self, message: &str) {
-            println!("Sending email: {}", message);
-        }
-    }
-
-    impl Notifier for SmsNotifier {
-        fn send(&self, message: &str) {
-            println!("Sending SMS: {}", message);
+            println!("Sending by email: {}", message);
         }
     }
 }
 
-fn main() {
-    use domain::OrderService;
-    use infrastructure::{EmailNotifier, SmsNotifier};
+// +1 service here
+mod sms {
+    use crate::domain::Sender;
+    pub struct Sms;
 
-    println!("=== Dependency Inversion Principle ===\n");
-
-    let email_service = OrderService::new(EmailNotifier);
-    email_service.place_order(201);
-
-    println!();
-
-    let sms_service = OrderService::new(SmsNotifier);
-    sms_service.place_order(202);
+    impl Sender for Sms {
+        fn send(&self, message: &str) {
+            println!("Sending by sms: {}", message);
+        }
+    }
 }
 
-// =========================
-// TESTING - The real benefit of DIP
-// =========================
+// +1 service here
+mod owl {
+    use crate::domain::Sender;
+    pub struct Owl;
 
-#[cfg(test)]
-mod tests {
-    use super::domain::*;
-    use std::cell::RefCell;
-    use std::rc::Rc;
-
-    // Mock notifier for testing - no real infrastructure needed!
-    struct MockNotifier {
-        messages: Rc<RefCell<Vec<String>>>, // Shared ownership for verification
-    }
-
-    impl MockNotifier {
-        fn new() -> (Self, Rc<RefCell<Vec<String>>>) {
-            let messages = Rc::new(RefCell::new(Vec::new()));
-            (
-                Self {
-                    messages: Rc::clone(&messages),
-                },
-                messages,
-            )
-        }
-    }
-
-    // Implement the domain's trait - that's all we need!
-    impl Notifier for MockNotifier {
+    impl Sender for Owl {
         fn send(&self, message: &str) {
-            self.messages.borrow_mut().push(message.to_string());
+            println!("Sending by 🦉: {}", message);
         }
     }
-
-    #[test]
-    fn test_order_service_sends_notification() {
-        // Arrange: Create service with mock
-        let (mock, messages) = MockNotifier::new();
-        let service = OrderService::new(mock);
-
-        // Act: Execute business logic
-        service.place_order(42);
-
-        // Assert: Verify the notification was sent
-        let msgs = messages.borrow();
-        assert_eq!(msgs.len(), 1);
-        assert_eq!(msgs[0], "Order #42 confirmed");
-    }
-
-    #[test]
-    fn test_multiple_orders() {
-        // Arrange
-        let (mock, messages) = MockNotifier::new();
-        let service = OrderService::new(mock);
-
-        // Act: Place multiple orders
-        service.place_order(100);
-        service.place_order(101);
-        service.place_order(102);
-
-        // Assert: All notifications were sent
-        let msgs = messages.borrow();
-        assert_eq!(msgs.len(), 3);
-        assert!(msgs[0].contains("Order #100"));
-        assert!(msgs[1].contains("Order #101"));
-        assert!(msgs[2].contains("Order #102"));
-    }
-
-    #[test]
-    fn test_notification_format() {
-        // Arrange
-        let (mock, messages) = MockNotifier::new();
-        let service = OrderService::new(mock);
-
-        // Act
-        service.place_order(999);
-
-        // Assert: Verify exact message format
-        let msgs = messages.borrow();
-        assert_eq!(msgs[0], "Order #999 confirmed");
-    }
-
-    // We could also test error cases, edge cases, etc.
-    // All without touching any real infrastructure!
 }

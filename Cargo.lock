@@ -83,6 +83,10 @@ name = "ex_05_ocp"
 version = "0.1.0"
 
 [[package]]
+name = "ex_06_dip"
+version = "0.1.0"
+
+[[package]]
 name = "ex_06_ocp"
 version = "0.1.0"
 

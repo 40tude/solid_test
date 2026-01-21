@@ -25,6 +25,7 @@ members = [
     "dip_03",
     "dip_04",
     "dip_05",
+    "dip_06",
 ]
 resolver = "3" # Read https://doc.rust-lang.org/cargo/reference/resolver.html#resolver-versions
 

@@ -1,302 +1,156 @@
+// cargo test -p ex_04_dip
 // cargo run -p ex_04_dip
+// Add testing
 
-// =========================
-// Hexagonal Architecture - aka Ports & Adapters
-// =========================
-
-// DOMAIN Layer (Core Business Logic)
-mod domain {
-    use std::fmt;
-
-    #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-    pub struct OrderId(pub u32);
-
-    #[derive(Debug, Clone, Copy)]
-    pub struct Money(pub u32); // cents
-
-    #[derive(Debug, Clone)]
-    pub struct LineItem {
-        pub name: String,
-        pub price: Money,
-    }
-
-    #[derive(Debug, Clone)]
-    pub struct Order {
-        pub id: OrderId,
-        pub items: Vec<LineItem>,
-        pub total: Money,
-    }
-
-    #[derive(Debug)]
-    pub enum OrderError {
-        InvalidOrder,
-        PaymentFailed,
-        StorageFailed,
-        NotificationFailed,
-    }
-
-    impl fmt::Display for OrderError {
-        fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-            write!(f, "{:?}", self)
-        }
-    }
-
-    impl Order {
-        pub fn new(id: OrderId, items: Vec<LineItem>) -> Result<Self, OrderError> {
-            if items.is_empty() {
-                return Err(OrderError::InvalidOrder);
-            }
-
-            let total = Money(items.iter().map(|item| item.price.0).sum());
-
-            Ok(Order { id, items, total })
-        }
-    }
-}
-
-// PORTS (Abstractions defined by domain)
-mod ports {
-    use crate::domain::*;
-
-    // Output port: domain needs to persist orders
-    pub trait OrderRepository {
-        fn save(&mut self, order: &Order) -> Result<(), OrderError>;
-        fn find(&self, id: OrderId) -> Result<Option<Order>, OrderError>;
-    }
-
-    // Output port: domain needs to process payments
-    pub trait PaymentGateway {
-        fn charge(&self, amount: Money) -> Result<(), OrderError>;
-    }
-
-    // Output port: domain needs to send notifications
-    pub trait NotificationService {
-        fn send_confirmation(&self, order: &Order) -> Result<(), OrderError>;
-    }
-}
-
-// APPLICATION service (Orchestrates domain + ports)
-mod application {
-    use crate::domain::*;
-    use crate::ports::*;
-
-    pub struct OrderService<R, P, N>
-    where
-        R: OrderRepository,
-        P: PaymentGateway,
-        N: NotificationService,
-    {
-        repository: R,
-        payment: P,
-        notifications: N,
-        next_id: u32,
-    }
-
-    impl<R, P, N> OrderService<R, P, N>
-    where
-        R: OrderRepository,
-        P: PaymentGateway,
-        N: NotificationService,
-    {
-        pub fn new(repository: R, payment: P, notifications: N) -> Self {
-            Self {
-                repository,
-                payment,
-                notifications,
-                next_id: 1,
-            }
-        }
-
-        pub fn place_order(&mut self, items: Vec<LineItem>) -> Result<Order, OrderError> {
-            // Pure business logic - no infrastructure concerns!
-            let order_id = OrderId(self.next_id);
-            self.next_id += 1;
-
-            let order = Order::new(order_id, items)?;
-
-            // Use abstractions, not concrete implementations
-            self.payment.charge(order.total)?;
-            self.repository.save(&order)?;
-            self.notifications.send_confirmation(&order)?;
-
-            Ok(order)
-        }
-
-        pub fn get_order(&self, id: OrderId) -> Result<Option<Order>, OrderError> {
-            self.repository.find(id)
-        }
-    }
-}
-
-// ADAPTERS - Implementation #1 (In-Memory)
-mod in_memory_adapters {
-    use crate::domain::*;
-    use crate::ports::*;
-    use std::collections::HashMap;
-
-    pub struct InMemoryOrderRepository {
-        orders: HashMap<OrderId, Order>,
-    }
-
-    impl InMemoryOrderRepository {
-        pub fn new() -> Self {
-            Self {
-                orders: HashMap::new(),
-            }
-        }
-    }
-
-    impl OrderRepository for InMemoryOrderRepository {
-        fn save(&mut self, order: &Order) -> Result<(), OrderError> {
-            println!("[InMemory] Saving order #{:?}", order.id);
-            self.orders.insert(order.id, order.clone());
-            Ok(())
-        }
-
-        fn find(&self, id: OrderId) -> Result<Option<Order>, OrderError> {
-            println!("[InMemory] Finding order #{:?}", id);
-            Ok(self.orders.get(&id).cloned())
-        }
-    }
-
-    pub struct MockPaymentGateway;
-
-    impl PaymentGateway for MockPaymentGateway {
-        fn charge(&self, amount: Money) -> Result<(), OrderError> {
-            println!("[Mock] Charging ${}.{:02}", amount.0 / 100, amount.0 % 100);
-            Ok(())
-        }
-    }
-
-    pub struct ConsoleNotificationService;
-
-    impl NotificationService for ConsoleNotificationService {
-        fn send_confirmation(&self, order: &Order) -> Result<(), OrderError> {
-            println!(
-                "[Console] Order #{:?} confirmed - Total: ${}.{:02}",
-                order.id,
-                order.total.0 / 100,
-                order.total.0 % 100
-            );
-            Ok(())
-        }
-    }
-}
-
-// ADAPTERS - Implementation #2 (Simulated External Services)
-mod external_adapters {
-    use crate::domain::*;
-    use crate::ports::*;
-    use std::collections::HashMap;
-
-    pub struct PostgresOrderRepository {
-        simulated_db: HashMap<OrderId, Order>,
-    }
-
-    impl PostgresOrderRepository {
-        pub fn new() -> Self {
-            Self {
-                simulated_db: HashMap::new(),
-            }
-        }
-    }
-
-    impl OrderRepository for PostgresOrderRepository {
-        fn save(&mut self, order: &Order) -> Result<(), OrderError> {
-            println!("[Postgres] INSERT INTO orders VALUES ({:?}, ...)", order.id);
-            self.simulated_db.insert(order.id, order.clone());
-            Ok(())
-        }
-
-        fn find(&self, id: OrderId) -> Result<Option<Order>, OrderError> {
-            println!("[Postgres] SELECT * FROM orders WHERE id = {:?}", id);
-            Ok(self.simulated_db.get(&id).cloned())
-        }
-    }
-
-    pub struct StripePaymentGateway;
-
-    impl PaymentGateway for StripePaymentGateway {
-        fn charge(&self, amount: Money) -> Result<(), OrderError> {
-            println!(
-                "[Stripe API] POST /charges amount=${}.{:02}",
-                amount.0 / 100,
-                amount.0 % 100
-            );
-            Ok(())
-        }
-    }
-
-    pub struct SendGridNotificationService;
-
-    impl NotificationService for SendGridNotificationService {
-        fn send_confirmation(&self, order: &Order) -> Result<(), OrderError> {
-            println!("[SendGrid API] POST /mail/send to=customer@example.com subject='Order #{:?} Confirmed'",
-                order.id);
-            Ok(())
-        }
-    }
-}
-
-// Demonstrating Swappable Adapters
 fn main() {
-    use application::OrderService;
-    use domain::{LineItem, Money, OrderId};
-    use external_adapters::*;
-    use in_memory_adapters::*;
+    use domain::OrderService;
+    use email::Email;
+    use owl::Owl;
+    use sms::Sms;
 
-    println!("=== Hexagonal Architecture Demo ===\n");
+    let email_service = OrderService::new(Email);
+    email_service.place_order(101);
+    println!();
+    let sms_service = OrderService::new(Sms);
+    sms_service.place_order(42);
+    println!();
+    let owl_service = OrderService::new(Owl);
+    owl_service.place_order(13);
+}
 
-    // Create test items
-    let items = vec![
-        LineItem {
-            name: "Rust Programming Book".to_string(),
-            price: Money(4999), // $49.99
-        },
-        LineItem {
-            name: "Mechanical Keyboard".to_string(),
-            price: Money(12999), // $129.99
-        },
-    ];
+mod domain {
+    pub trait Sender {
+        fn send(&self, message: &str);
+    }
+    pub struct OrderService<S: Sender> {
+        sender: S,
+    }
 
-    println!("--- Configuration #1: In-Memory Adapters (Testing) ---\n");
-    {
-        let repo = InMemoryOrderRepository::new();
-        let payment = MockPaymentGateway;
-        let notifications = ConsoleNotificationService;
+    impl<S: Sender> OrderService<S> {
+        pub fn new(sender: S) -> Self {
+            Self { sender }
+        }
 
-        let mut service = OrderService::new(repo, payment, notifications);
+        pub fn place_order(&self, order_id: u32) {
+            println!("Order #{} placed", order_id);
 
-        match service.place_order(items.clone()) {
-            Ok(order) => println!("Order placed successfully: {:?}\n", order.id),
-            Err(e) => println!("Error: {}\n", e),
+            self.sender.send(&format!("Order #{} confirmed", order_id));
+        }
+    }
+}
+
+mod email {
+    use crate::domain::Sender;
+
+    pub struct Email;
+
+    impl Sender for Email {
+        fn send(&self, message: &str) {
+            println!("Sending by email: {}", message);
+        }
+    }
+}
+
+mod sms {
+    use crate::domain::Sender;
+    pub struct Sms;
+
+    impl Sender for Sms {
+        fn send(&self, message: &str) {
+            println!("Sending by sms: {}", message);
+        }
+    }
+}
+
+mod owl {
+    use crate::domain::Sender;
+    pub struct Owl;
+
+    impl Sender for Owl {
+        fn send(&self, message: &str) {
+            println!("Sending by 🦉: {}", message);
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::domain::*;
+    use std::cell::RefCell;
+    use std::rc::Rc;
+
+    // Mock sender for testing - no real infrastructure needed!
+    struct MockSender {
+        messages: Rc<RefCell<Vec<String>>>, // Shared ownership for verification
+    }
+
+    impl MockSender {
+        fn new() -> (Self, Rc<RefCell<Vec<String>>>) {
+            let messages = Rc::new(RefCell::new(Vec::new()));
+            (
+                Self {
+                    messages: Rc::clone(&messages),
+                },
+                messages,
+            )
         }
     }
 
-    println!("--- Configuration #2: External Services (Production) ---\n");
-    {
-        let repo = PostgresOrderRepository::new();
-        let payment = StripePaymentGateway;
-        let notifications = SendGridNotificationService;
-
-        let mut service = OrderService::new(repo, payment, notifications);
-
-        match service.place_order(items.clone()) {
-            Ok(order) => {
-                println!("Order placed successfully: {:?}", order.id);
-
-                // Demonstrate retrieval
-                println!();
-                if let Ok(Some(retrieved)) = service.get_order(order.id) {
-                    println!(
-                        "Retrieved order: {} items, total ${}.{:02}",
-                        retrieved.items.len(),
-                        retrieved.total.0 / 100,
-                        retrieved.total.0 % 100
-                    );
-                }
-            }
-            Err(e) => println!("Error: {}", e),
+    // Implement the domain's trait - that's all we need!
+    impl Sender for MockSender {
+        fn send(&self, message: &str) {
+            self.messages.borrow_mut().push(message.to_string());
         }
     }
+
+    #[test]
+    fn test_order_service_sends_notification() {
+        // Arrange: Create service with mock
+        let (mock, messages) = MockSender::new();
+        let service = OrderService::new(mock);
+
+        // Act: Execute business logic
+        service.place_order(42);
+
+        // Assert: Verify the notification was sent
+        let msgs = messages.borrow();
+        assert_eq!(msgs.len(), 1);
+        assert_eq!(msgs[0], "Order #42 confirmed");
+    }
+
+    #[test]
+    fn test_multiple_orders() {
+        // Arrange
+        let (mock, messages) = MockSender::new();
+        let service = OrderService::new(mock);
+
+        // Act: Place multiple orders
+        service.place_order(100);
+        service.place_order(101);
+        service.place_order(102);
+
+        // Assert: All notifications were sent
+        let msgs = messages.borrow();
+        assert_eq!(msgs.len(), 3);
+        assert!(msgs[0].contains("Order #100"));
+        assert!(msgs[1].contains("Order #101"));
+        assert!(msgs[2].contains("Order #102"));
+    }
+
+    #[test]
+    fn test_notification_format() {
+        // Arrange
+        let (mock, messages) = MockSender::new();
+        let service = OrderService::new(mock);
+
+        // Act
+        service.place_order(999);
+
+        // Assert: Verify exact message format
+        let msgs = messages.borrow();
+        assert_eq!(msgs[0], "Order #999 confirmed");
+    }
+
+    // We could also test error cases, edge cases, etc.
+    // All without touching any real infrastructure!
 }
