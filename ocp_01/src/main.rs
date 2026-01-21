@@ -24,9 +24,9 @@ impl Report {
     pub fn generate(&self, format: ReportFormat) -> String {
         match format {
             ReportFormat::Text => {
-                let mut output = format!("=== {} ===\n", self.title);
+                let mut output = format!("=== {} ===", self.title);
                 for item in &self.data {
-                    output.push_str(&format!("- {}\n", item));
+                    output.push_str(&format!("\n- {}", item));
                 }
                 output
             }
@@ -62,7 +62,7 @@ fn main() {
     let html_report = report.generate(ReportFormat::Html);
     let pdf_report = report.generate(ReportFormat::Pdf);
 
-    println!("--- TEXT REPORT ---\n{}", text_report);
-    println!("--- HTML REPORT ---\n{}", html_report);
-    println!("--- PDF REPORT ---\n{}", pdf_report);
+    println!("\n--- TEXT REPORT ---\n{}", text_report);
+    println!("\n--- HTML REPORT ---\n{}", html_report);
+    println!("\n--- PDF REPORT ---\n{}", pdf_report);
 }

@@ -36,9 +36,9 @@ pub struct TextFormatter;
 
 impl ReportFormatter for TextFormatter {
     fn format(&self, title: &str, data: &[String]) -> String {
-        let mut output = format!("=== {} ===\n", title);
+        let mut output = format!("=== {} ===", title);
         for item in data {
-            output.push_str(&format!("- {}\n", item));
+            output.push_str(&format!("\n- {}", item));
         }
         output
     }
@@ -99,8 +99,8 @@ fn main() {
         ],
     };
 
-    println!("--- TEXT ---\n{}", report.generate(&TextFormatter));
-    println!("--- HTML ---\n{}", report.generate(&HtmlFormatter));
-    println!("--- PDF ---\n{}", report.generate(&PdfFormatter));
-    println!("--- XML ---\n{}", report.generate(&XmlFormatter));
+    println!("\n--- TEXT ---\n{}", report.generate(&TextFormatter));
+    println!("\n--- HTML ---\n{}", report.generate(&HtmlFormatter));
+    println!("\n--- PDF ---\n{}", report.generate(&PdfFormatter));
+    println!("\n--- XML ---\n{}", report.generate(&XmlFormatter));
 }

@@ -1,6 +1,6 @@
 // cargo run -p ex_02_dip
 
-// Alright! Now we're going to fix the problem we saw in ex00.
+// Alright! Now we're going to fix the problem we saw in ex_01_dip.
 // The magic word? Dependency Inversion.
 // Instead of business logic depending on infrastructure,
 // we'll make infrastructure depend on business logic. Let's see how!
