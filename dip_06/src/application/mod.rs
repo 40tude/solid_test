@@ -52,7 +52,7 @@ use crate::ports::{OrderRepository, PaymentGateway, Sender};
 //
 // Same pattern, just scaled up. More dependencies, more flexibility.
 
-pub struct OrderService<R, P, N>
+pub struct OrderService<'a, R, P, N>
 where
     R: OrderRepository,
     P: PaymentGateway,
@@ -61,9 +61,9 @@ where
     // These fields hold our adapters. But we only know them by their traits!
     // `repository` could be PostgresOrderRepository or InMemoryOrderRepository.
     // We don't know, and we don't need to know. That's abstraction at work.
-    repository: R,
-    payment: P,
-    sender: N,
+    repository: &'a mut R,
+    payment: &'a P,
+    sender: &'a N,
 
     // This is application state, not business logic.
     // In a real app, IDs would come from the database or a UUID generator.
@@ -74,7 +74,7 @@ where
 // Implementation - Where Orchestration Happens
 // =============================================================================
 
-impl<R, P, N> OrderService<R, P, N>
+impl<'a, R, P, N> OrderService<'a, R, P, N>
 where
     R: OrderRepository,
     P: PaymentGateway,
@@ -90,7 +90,7 @@ where
     /// - Testing: pass mock adapters, no real database needed
     /// - Flexibility: swap PostgreSQL for MongoDB without changing this code
     /// - Clarity: dependencies are explicit, not hidden in the implementation
-    pub fn new(repository: R, payment: P, sender: N) -> Self {
+    pub fn new(repository: &'a mut R, payment: &'a P, sender: &'a N) -> Self {
         Self {
             repository,
             payment,

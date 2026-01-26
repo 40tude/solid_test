@@ -136,19 +136,19 @@ mod application {
     //
     // Same principle, just more ports. Each one is a plug where we can
     // connect different adapters.
-    pub struct OrderService<R, P, N>
+    pub struct OrderService<'a, R, P, N>
     where
         R: OrderRepository,
         P: PaymentGateway,
         N: Sender,
     {
-        repository: R,
-        payment: P,
-        sender: N,
+        repository: &'a mut R,
+        payment: &'a P,
+        sender: &'a N,
         next_id: u32,
     }
 
-    impl<R, P, N> OrderService<R, P, N>
+    impl<'a, R, P, N> OrderService<'a, R, P, N>
     where
         R: OrderRepository,
         P: PaymentGateway,
@@ -156,7 +156,7 @@ mod application {
     {
         // Dependency Injection: same as ex_02_dip, just with more dependencies.
         // The caller decides which implementations to use.
-        pub fn new(repository: R, payment: P, sender: N) -> Self {
+        pub fn new(repository: &'a mut R, payment: &'a P, sender: &'a N) -> Self {
             Self {
                 repository,
                 payment,
@@ -372,12 +372,12 @@ fn main() {
     // Here, we inject mocks for ALL our ports.
     println!("--- Configuration #1: In-Memory Adapters (Testing) ---\n");
     {
-        let repo = InMemoryOrderRepository::new();
+        let mut repo = InMemoryOrderRepository::new();
         let payment = MockPaymentGateway;
         let sender = ConsoleSender;
 
         // Same OrderService, test adapters
-        let mut service = OrderService::new(repo, payment, sender);
+        let mut service = OrderService::new(&mut repo, &payment, &sender);
 
         match service.place_order(items.clone()) {
             Ok(order) => println!("\n  Success! Order {:?} placed.\n", order.id),
@@ -391,12 +391,12 @@ fn main() {
     // We just plugged in different adapters. That's DIP at scale!
     println!("--- Configuration #2: External Services (Production) ---\n");
     {
-        let repo = PostgresOrderRepository::new();
+        let mut repo = PostgresOrderRepository::new();
         let payment = StripePaymentGateway;
         let sender = SendGridSender;
 
         // Same OrderService, production adapters
-        let mut service = OrderService::new(repo, payment, sender);
+        let mut service = OrderService::new(&mut repo, &payment, &sender);
 
         match service.place_order(items.clone()) {
             Ok(order) => {

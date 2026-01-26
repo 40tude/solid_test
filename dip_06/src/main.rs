@@ -111,11 +111,11 @@ fn main() {
     // Everything runs in memory, fast and deterministic.
     println!("--- Configuration #1: In-Memory Adapters (Testing) ---\n");
     {
-        let repo = InMemoryOrderRepository::new();
+        let mut repo = InMemoryOrderRepository::new();
         let payment = MockPaymentGateway;
         let sender = ConsoleSender;
 
-        let mut service = OrderService::new(repo, payment, sender);
+        let mut service = OrderService::new(&mut repo, &payment, &sender);
 
         match service.place_order(items.clone()) {
             Ok(order) => println!("\nOrder placed successfully: {:?}\n", order.id),
@@ -131,11 +131,11 @@ fn main() {
     // variables or a config file. The point is: OrderService doesn't care!
     println!("--- Configuration #2: External Services (Production) ---\n");
     {
-        let repo = PostgresOrderRepository::new();
+        let mut repo = PostgresOrderRepository::new();
         let payment = StripePaymentGateway;
         let sender = SendGridSender;
 
-        let mut service = OrderService::new(repo, payment, sender);
+        let mut service = OrderService::new(&mut repo, &payment, &sender);
 
         match service.place_order(items.clone()) {
             Ok(order) => {
