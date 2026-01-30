@@ -18,19 +18,19 @@ pub trait Storage {
 }
 
 // Simple Redis mock so the example compiles
-pub struct RedisClient;
+// pub struct RedisClient;
 
-impl RedisClient {
-    fn get(&self, _key: &str) -> Result<String, ()> {
-        Err(())
-    }
-    fn set(&self, _key: &str, _value: &str) -> Result<(), ()> {
-        Ok(())
-    }
-    fn del(&self, _key: &str) -> Result<(), ()> {
-        Ok(())
-    }
-}
+// impl RedisClient {
+//     fn get(&self, _key: &str) -> Result<String, ()> {
+//         Err(())
+//     }
+//     fn set(&self, _key: &str, _value: &str) -> Result<(), ()> {
+//         Ok(())
+//     }
+//     fn del(&self, _key: &str) -> Result<(), ()> {
+//         Ok(())
+//     }
+// }
 
 // =========================
 // Concrete storages
@@ -64,31 +64,31 @@ impl Storage for MemoryStorage {
 }
 
 // Redis backend
-pub struct RedisStorage {
-    client: RedisClient,
-}
+// pub struct RedisStorage {
+//     client: RedisClient,
+// }
 
-impl RedisStorage {
-    fn new() -> Self {
-        Self {
-            client: RedisClient,
-        }
-    }
-}
+// impl RedisStorage {
+//     fn new() -> Self {
+//         Self {
+//             client: RedisClient,
+//         }
+//     }
+// }
 
-impl Storage for RedisStorage {
-    fn get(&self, key: &str) -> Option<String> {
-        self.client.get(key).ok()
-    }
+// impl Storage for RedisStorage {
+//     fn get(&self, key: &str) -> Option<String> {
+//         self.client.get(key).ok()
+//     }
 
-    fn set(&mut self, key: String, value: String) {
-        self.client.set(&key, &value).ok();
-    }
+//     fn set(&mut self, key: String, value: String) {
+//         self.client.set(&key, &value).ok();
+//     }
 
-    fn delete(&mut self, key: &str) -> bool {
-        self.client.del(key).is_ok()
-    }
-}
+//     fn delete(&mut self, key: &str) -> bool {
+//         self.client.del(key).is_ok()
+//     }
+// }
 
 // =========================
 // FIXED: LSP-compliant FileStorage
@@ -170,10 +170,10 @@ fn demo(storage: &mut dyn Storage) {
 
 fn main() {
     let mut mem = MemoryStorage::new();
-    let mut redis = RedisStorage::new();
+    // let mut redis = RedisStorage::new();
     let mut file = FileStorage::new(".");
 
     demo(&mut mem);
-    demo(&mut redis);
+    // demo(&mut redis);
     demo(&mut file);
 }
